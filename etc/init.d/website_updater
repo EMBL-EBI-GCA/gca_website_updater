@@ -13,6 +13,10 @@ WU_HOME=/nfs/public/rw/reseq-info/static_website_updater/gca_website_updater
 SCRIPT=$WU_HOME/scripts/website_updater/website_updater.pl
 
 test -d $WU_HOME || exit 0
+
+if [[ ! $PATH =~ (^|:)$WU_HOME/local/bin(:|$) ]]; then
+    PATH=$PATH:$WU_HOME/local/bin
+fi
  
 set -e
  
