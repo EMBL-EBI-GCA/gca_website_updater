@@ -9,10 +9,10 @@ sub update_project {
   my $project_config = $self->config('projects')->{$project};
   $self->not_found("no project config for $project") if !$project_config;
 
-  my $git_branch = $project_config{branch} || 'master';
-  my $git_remote = $project_config{remote} || 'origin';
+  my $git_branch = $project_config->{branch} || 'master';
+  my $git_remote = $project_config->{remote} || 'origin';
 
-  my $dir = $project_config{'git_directory'} or return $self->server_error("no git_directory for $project");;
+  my $dir = $project_config->{'git_directory'} or return $self->server_error("no git_directory for $project");;
   chdir $dir or return $self->server_error("could not change to $dir");
   is_git_repo() or return $self->server_error("$dir is not a git repo");
   is_tree_clean() or return $self->server_error("$dir is not clean");
@@ -48,7 +48,7 @@ sub update_project {
 
   my $rsync = File::Rsync->new({archive => 1, compress => 1, 'delete-after' => 1});
   foreach my $dest ($project_config->{rsync_dests}) {
-    $rsync->exec({src => "$dir/_site/", dest => $dest}) or return $self->server_error{};
+    $rsync->exec({src => "$dir/_site/", dest => $dest}) or return $self->server_error("could rsync $dir/_site/ to $dest");
   }
 
   $self->reset_branch();
