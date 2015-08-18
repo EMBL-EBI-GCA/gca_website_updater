@@ -1,6 +1,6 @@
 requires 'Mojolicious';
-requires 'Moose';
-requires 'namespace::autoclean';
+requires 'File::Rsync';
+requires 'EnsEMBL::Git';
 
 on 'build' => sub {
     requires 'Module::Build::Pluggable';
