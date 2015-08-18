@@ -7,7 +7,7 @@ sub update_project {
   my ($self) = @_;
   my $project = $self->stash('project');
   my $project_config = $self->config('projects')->{$project};
-  $self->not_found("no project config for $project") if !$project_config;
+  return $self->not_found("no project config for $project") if !$project_config;
 
   my $git_branch = $project_config->{branch} || 'master';
   my $git_remote = $project_config->{remote} || 'origin';
@@ -46,26 +46,27 @@ sub update_project {
     return $self->server_error("jekyll exited with code $exit");
   }
 
-  my $rsync = File::Rsync->new({archive => 1, compress => 1, 'delete-after' => 1});
-  foreach my $dest ($project_config->{rsync_dests}) {
-    $rsync->exec({src => "$dir/_site/", dest => $dest}) or return $self->server_error("could rsync $dir/_site/ to $dest");
+  my $rsync = File::Rsync->new(archive => 1, compress => 1, 'delete-after' => 1);
+  foreach my $dest (@{$project_config->{rsync_dests}}) {
+    $rsync->exec(src => "$dir/_site/", dest => $dest) or return $self->server_error("could not rsync $dir/_site/ to $dest ". scalar $rsync->lastcmd);
   }
 
   $self->reset_branch();
+  $self->render(text=>"success\n");
 
 }
 
 sub not_found {
   my ($self, $msg) = @_;
   $self->app->log->info($msg);
-  return $self->render('not found, see log file for details', status=>404);
+  return $self->render(text=>"not found, see log file for details", status=>404);
 }
 
 sub server_error {
   my ($self, $msg) = @_;
   $self->app->log->info($msg);
   $self->reset_branch();
-  return $self->render('server error, see log file for details', status=>500);
+  return $self->render(text=>"server error, see log file for details\n", status=>500);
 }
 
 sub reset_branch {
