@@ -6,7 +6,7 @@ sub startup {
 
     $self->plugin('Config', file => $self->home->rel_file('config/website_updater.conf'));
 
-    $self->routes->get('/update_project/:project')->to(controller => 'websiteupdater', action=> 'update_project');
+    $self->routes->get('/update_project/:project')->to(controller => 'website_updater', action=> 'update_project');
 
 }
 
