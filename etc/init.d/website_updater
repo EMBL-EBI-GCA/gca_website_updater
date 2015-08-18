@@ -1,0 +1,40 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:          website_updater
+# Required-Start:    $all
+# Required-Stop:    $all
+# Default-Start:    2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Starts website_updater
+# Description:      Starts website_updater using hypnotoad
+### END INIT INFO
+ 
+WU_HOME=/nfs/public/rw/reseq-info/static_website_updater/gca_website_updater
+SCRIPT=$WU_HOME/scripts/website_updater/website_updater.pl
+
+test -d $WU_HOME || exit 0
+ 
+set -e
+ 
+case "$1" in
+  start)
+    echo "Starting $SCRIPT"
+    cd $ES_HOME
+    carton exec hypnotoad $SCRIPT
+    ;;
+  stop)
+    echo "Stopping $SCRIPT"
+    carton exec hypnotoad --stop $SCRIPT
+    ;;
+  restart|force-reload)
+    ${0} stop
+    sleep 0.5
+    ${0} start
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|force-reload}" >&2
+    exit 1
+    ;;
+esac
+ 
+exit 0
