@@ -43,7 +43,7 @@ sub update_project {
     }
   }
 
-  spurt("running $current_time\n", $log_file) return $self->server_error("could not spurt to $log_file $!");
+  spurt("running $current_time\n", $log_file) or return $self->server_error("could not spurt to $log_file $!");
   $self->render(text => "update will run now\n");
   $self->update_project_now();
 }
