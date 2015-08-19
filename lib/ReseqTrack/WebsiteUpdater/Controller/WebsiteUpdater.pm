@@ -10,7 +10,7 @@ sub update_project {
 
   my $project = $self->stash('project');
   my $project_config = $self->config('projects')->{$project};
-  $self->not_found("no project config for $project") if !$project_config;
+  return $self->not_found("no project config for $project") if !$project_config;
 
   my $log_dir = $self->stash('updating_log_dir') || $self->app->home->rel_dir('var/run');
   File::Path::make_path($log_dir);
@@ -26,13 +26,13 @@ sub update_project {
     if ($line && $line =~ /queue (\d+)/) {
       my $queue_time = $1;
       my $time_to_sleep = $queue_time + $updating_limiter - $current_time;
-      return $self->render(text => "update will run in $time_to_sleep seconds");
+      return $self->render(text => "update will run in $time_to_sleep seconds\n");
     }
     if ($line && $line =~ /running (\d+)/) {
       my $running_time = $1;
       my $time_to_sleep = $running_time + $updating_limiter - $current_time;
       if ($time_to_sleep > 0) {
-        $self->render(text => "update will run in $time_to_sleep seconds");
+        $self->render(text => "update will run in $time_to_sleep seconds\n");
         open my $fh, '>', $log_file or return $self->server_error("could not open $log_file $!");
         print $fh "queue $running_time\n";
         close $fh;
@@ -51,7 +51,7 @@ sub update_project {
   open my $fh, '>', $log_file or return $self->server_error("could not open $log_file $!");
   print $fh "running $current_time\n";
   close $fh;
-  $self->render(text => "update will run now");
+  $self->render(text => "update will run now\n");
   $self->update_project_now();
 }
 
@@ -122,7 +122,7 @@ sub update_project_now {
 sub not_found {
   my ($self, $msg) = @_;
   $self->app->log->info($msg);
-  return $self->render(text=>"not found, see log file for details", status=>404);
+  return $self->render(text=>"not found, see log file for details\n", status=>404);
 }
 
 sub server_error {
