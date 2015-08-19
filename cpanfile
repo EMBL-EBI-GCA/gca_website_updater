@@ -1,5 +1,6 @@
 requires 'Mojolicious';
 requires 'File::Rsync';
+requires 'File::Path';
 requires 'EnsEMBL::Git';
 requires 'Mojolicious::Plugin::ForkCall';
 

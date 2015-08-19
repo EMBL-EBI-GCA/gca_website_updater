@@ -3,6 +3,7 @@ use Mojo::Base 'Mojolicious::Controller';
 use Mojo::IOLoop;
 use EnsEMBL::Git;
 use File::Rsync;
+use File::Path;
 
 sub update_project {
   my ($self) = @_;
@@ -12,8 +13,10 @@ sub update_project {
   $self->not_found("no project config for $project") if !$project_config;
 
   my $log_dir = $self->stash('updating_log_dir') || $self->app->home->rel_dir('var/run');
+  File::Path::make_path($log_dir);
   my $updating_limiter = $self->stash('updating_limiter') || 120;
 
+  
   my $log_file = "$log_dir/$project.log";
   my $current_time = time();
   if (-f $log_file) {
