@@ -66,7 +66,7 @@ sub update_project {
     my ($self, $handler, @handler_args) = @_;
     return $handler->($self, @handler_args) if defined $handler;
     $self->render(text=>"success\n");
-  };
+  });
 
 
 }
