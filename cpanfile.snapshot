@@ -49,6 +49,21 @@ DISTRIBUTIONS
       perl 5.008001
       strict 0
       warnings 0
+  Capture-Tiny-0.30
+    pathname: D/DA/DAGOLDEN/Capture-Tiny-0.30.tar.gz
+    provides:
+      Capture::Tiny 0.30
+    requirements:
+      Carp 0
+      Exporter 0
+      ExtUtils::MakeMaker 6.17
+      File::Spec 0
+      File::Temp 0
+      IO::Handle 0
+      Scalar::Util 0
+      perl 5.006
+      strict 0
+      warnings 0
   Class-Accessor-Lite-0.08
     pathname: K/KA/KAZUHO/Class-Accessor-Lite-0.08.tar.gz
     provides:
@@ -78,6 +93,59 @@ DISTRIBUTIONS
       Sub::Install 0.921
       strict 0
       warnings 0
+  Exporter-5.72
+    pathname: T/TO/TODDR/Exporter-5.72.tar.gz
+    provides:
+      Exporter 5.72
+      Exporter::Heavy 5.70
+    requirements:
+      Carp 1.05
+      ExtUtils::MakeMaker 0
+  ExtUtils-MakeMaker-7.04
+    pathname: B/BI/BINGOS/ExtUtils-MakeMaker-7.04.tar.gz
+    provides:
+      ExtUtils::Command::MM 7.04
+      ExtUtils::Liblist 7.04
+      ExtUtils::Liblist::Kid 7.04
+      ExtUtils::MM 7.04
+      ExtUtils::MM_AIX 7.04
+      ExtUtils::MM_Any 7.04
+      ExtUtils::MM_BeOS 7.04
+      ExtUtils::MM_Cygwin 7.04
+      ExtUtils::MM_DOS 7.04
+      ExtUtils::MM_Darwin 7.04
+      ExtUtils::MM_MacOS 7.04
+      ExtUtils::MM_NW5 7.04
+      ExtUtils::MM_OS2 7.04
+      ExtUtils::MM_QNX 7.04
+      ExtUtils::MM_UWIN 7.04
+      ExtUtils::MM_Unix 7.04
+      ExtUtils::MM_VMS 7.04
+      ExtUtils::MM_VOS 7.04
+      ExtUtils::MM_Win32 7.04
+      ExtUtils::MM_Win95 7.04
+      ExtUtils::MY 7.04
+      ExtUtils::MakeMaker 7.04
+      ExtUtils::MakeMaker::Config 7.04
+      ExtUtils::MakeMaker::Locale 7.04
+      ExtUtils::MakeMaker::_version 7.04
+      ExtUtils::MakeMaker::charstar 7.04
+      ExtUtils::MakeMaker::version 7.04
+      ExtUtils::MakeMaker::version::regex 7.04
+      ExtUtils::MakeMaker::version::vpp 7.04
+      ExtUtils::Mkbootstrap 7.04
+      ExtUtils::Mksymlists 7.04
+      ExtUtils::testlib 7.04
+      MM 7.04
+      MY 7.04
+    requirements:
+      Data::Dumper 0
+      DirHandle 0
+      Encode 0
+      File::Basename 0
+      File::Spec 0.8
+      Pod::Man 0
+      perl 5.006
   File-Rsync-0.46
     pathname: L/LE/LEAKIN/File-Rsync-0.46.tar.gz
     provides:
@@ -88,6 +156,19 @@ DISTRIBUTIONS
       IPC::Run3 0
       Scalar::Util 0
       Test::More 0
+  IO-Pipely-0.005
+    pathname: R/RC/RCAPUTO/IO-Pipely-0.005.tar.gz
+    provides:
+      IO::Pipely 0.005
+    requirements:
+      Exporter 5.68
+      ExtUtils::MakeMaker 6.30
+      Fcntl 1.06
+      IO::Socket 1.31
+      Symbol 1.06
+      base 2.18
+      strict 0
+      warnings 0
   IO-Socket-IP-0.37
     pathname: P/PE/PEVANS/IO-Socket-IP-0.37.tar.gz
     provides:
@@ -104,6 +185,15 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Test::More 0.31
       Time::HiRes 0
+  JSON-2.90
+    pathname: M/MA/MAKAMAKA/JSON-2.90.tar.gz
+    provides:
+      JSON 2.90
+      JSON::Backend::PP 2.90
+      JSON::Boolean 2.90
+    requirements:
+      ExtUtils::MakeMaker 0
+      Test::More 0
   Module-Build-Pluggable-0.10
     pathname: T/TO/TOKUHIROM/Module-Build-Pluggable-0.10.tar.gz
     provides:
@@ -155,6 +245,16 @@ DISTRIBUTIONS
       CPAN::Meta::Prereqs 2.12091
       ExtUtils::MakeMaker 0
       parent 0
+  Mojo-IOLoop-ForkCall-0.17
+    pathname: J/JB/JBERGER/Mojo-IOLoop-ForkCall-0.17.tar.gz
+    provides:
+      Mojo::IOLoop::ForkCall 0.17
+      Mojolicious::Plugin::ForkCall undef
+    requirements:
+      IO::Pipely 0
+      Module::Build 0.38
+      Mojolicious 5.08
+      Perl::OSType 0
   Mojolicious-6.15
     pathname: S/SR/SRI/Mojolicious-6.15.tar.gz
     provides:
@@ -279,7 +379,7 @@ DISTRIBUTIONS
       ExtUtils::CBuilder 0.27
       ExtUtils::MakeMaker 6.52
       File::Spec 0.80
-      Scalar::Util 1.10
+      Scalar::Util 1.18
       Test::More 0.42
       perl 5.00503
   Parse-CPAN-Meta-1.4417
@@ -307,6 +407,27 @@ DISTRIBUTIONS
       Scalar::Util 0
       strict 0
       warnings 0
+  Test-Fatal-0.014
+    pathname: R/RJ/RJBS/Test-Fatal-0.014.tar.gz
+    provides:
+      Test::Fatal 0.014
+    requirements:
+      Carp 0
+      Exporter 5.57
+      ExtUtils::MakeMaker 0
+      Test::Builder 0
+      Try::Tiny 0.07
+      strict 0
+      warnings 0
+  Test-Requires-0.10
+    pathname: T/TO/TOKUHIROM/Test-Requires-0.10.tar.gz
+    provides:
+      Test::Requires 0.10
+    requirements:
+      ExtUtils::MakeMaker 6.64
+      Test::Builder::Module 0
+      Test::More 0.47
+      perl 5.006
   Test-SharedFork-0.33
     pathname: E/EX/EXODIST/Test-SharedFork-0.33.tar.gz
     provides:
@@ -321,3 +442,36 @@ DISTRIBUTIONS
       Test::Builder::Module 0
       Test::More 0.88
       perl 5.008_001
+  Test-Simple-1.001014
+    pathname: E/EX/EXODIST/Test-Simple-1.001014.tar.gz
+    provides:
+      Test::Builder 1.001014
+      Test::Builder::IO::Scalar 2.113
+      Test::Builder::Module 1.001014
+      Test::Builder::Tester 1.28
+      Test::Builder::Tester::Color 1.290001
+      Test::Builder::Tester::Tie 1.28
+      Test::More 1.001014
+      Test::Simple 1.001014
+      Test::Tester 0.114
+      Test::Tester::Capture undef
+      Test::Tester::CaptureRunner undef
+      Test::Tester::Delegate undef
+      Test::use::ok 0.16
+      ok 0.16
+    requirements:
+      ExtUtils::MakeMaker 0
+      Scalar::Util 1.13
+      Test::Harness 2.03
+      perl 5.006
+  Try-Tiny-0.22
+    pathname: D/DO/DOY/Try-Tiny-0.22.tar.gz
+    provides:
+      Try::Tiny 0.22
+    requirements:
+      Carp 0
+      Exporter 5.57
+      ExtUtils::MakeMaker 6.30
+      constant 0
+      strict 0
+      warnings 0
