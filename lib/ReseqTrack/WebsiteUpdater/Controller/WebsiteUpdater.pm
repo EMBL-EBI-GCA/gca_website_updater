@@ -1,6 +1,7 @@
 package ReseqTrack::WebsiteUpdater::Controller::WebsiteUpdater;
 use Mojo::Base 'Mojolicious::Controller';
 use Mojo::IOLoop;
+use Mojo::Util qw(slurp spurt);
 use EnsEMBL::Git;
 use File::Rsync;
 use File::Path;
@@ -20,9 +21,7 @@ sub update_project {
   my $log_file = "$log_dir/$project.log";
   my $current_time = time();
   if (-f $log_file) {
-    open my $fh, '<', $log_file or return $self->server_error("could not open $log_file $!");
-    my $line = <$fh>;
-    close $fh;
+    my $line = slurp($log_file) or return $self->server_error("could not slurp from $log_file $!");
     if ($line && $line =~ /queue (\d+)/) {
       my $queue_time = $1;
       my $time_to_sleep = $queue_time + $updating_limiter - $current_time;
@@ -33,14 +32,10 @@ sub update_project {
       my $time_to_sleep = $running_time + $updating_limiter - $current_time;
       if ($time_to_sleep > 0) {
         $self->render(text => "update will run in $time_to_sleep seconds\n");
-        open my $fh, '>', $log_file or return $self->server_error("could not open $log_file $!");
-        print $fh "queue $running_time\n";
-        close $fh;
+        spurt("queue $running_time\n", $log_file) or return $self->server_error("could not spurt to $log_file $!");
         Mojo::IOLoop->timer($time_to_sleep => sub {
           $current_time = time();
-          open my $fh, '>', $log_file or return $self->app->log->info("could not open $log_file $!");
-          print $fh "running $current_time\n";
-          close $fh;
+          spurt("running $current_time\n", $log_file) or return $self->app->log->info("could not spurt to $log_file $!");
           $self->update_project_now();
         });
         return;
@@ -48,9 +43,7 @@ sub update_project {
     }
   }
 
-  open my $fh, '>', $log_file or return $self->server_error("could not open $log_file $!");
-  print $fh "running $current_time\n";
-  close $fh;
+  spurt("running $current_time\n", $log_file) or return $self->server_error("could not spurt to $log_file $!");
   $self->render(text => "update will run now\n");
   $self->update_project_now();
 }
