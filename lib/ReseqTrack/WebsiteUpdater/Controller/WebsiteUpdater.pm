@@ -10,7 +10,7 @@ sub update_project {
 
   my $project = $self->stash('project');
   my $project_config = $self->config('projects')->{$project};
-  return $self->not_found("no project config for $project") if !$project_config;
+  return $self->render(text=>"project $project does not exist\n", status=>404) if !$project_config;
 
   my $log_dir = $self->stash('updating_log_dir') || $self->app->home->rel_dir('var/run');
   File::Path::make_path($log_dir);
@@ -117,12 +117,6 @@ sub update_project_now {
   });
 
 
-}
-
-sub not_found {
-  my ($self, $msg) = @_;
-  $self->app->log->info($msg);
-  return $self->render(text=>"not found, see log file for details\n", status=>404);
 }
 
 sub server_error {
