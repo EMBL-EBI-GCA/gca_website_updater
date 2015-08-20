@@ -23,7 +23,7 @@ sub publish {
   my $tx = $ua->post($hub_href, form => {'hub.mode' => 'publish', 'hub.url' => $rss_href});
 
   return 1 if $tx->success;
-  die "pubsubhubbub publish unsuccessulf ".$tx->error->{code};
+  die "pubsubhubbub publish unsuccessulf ".$tx->error->{code}.': '.$tx->res->content->body;
 
 }
 
