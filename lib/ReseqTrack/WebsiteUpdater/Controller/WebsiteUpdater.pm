@@ -13,7 +13,7 @@ sub update_project {
   my $project_config = $self->config('projects')->{$project};
   return $self->render(text=>"project $project does not exist\n", status=>404) if !$project_config;
 
-  my $log_dir = $self->stash('updating_log_dir') || $self->app->home->rel_dir('var/run');
+  my $log_dir = $self->config('updating_log_dir') || $self->app->home->rel_dir('var/run');
   File::Path::make_path($log_dir);
   my $updating_limiter = $self->stash('updating_limiter') || 120;
 
