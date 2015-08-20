@@ -108,7 +108,7 @@ sub update_project_now {
       $rsync->exec(src => "$dir/_site/", dest => $dest) or reset_and_return("could not rsync $dir/_site/ to $dest ". scalar $rsync->lastcmd);
     }
 
-    if (my $rss = $self->publish_pubsubhubbub) {
+    if (my $rss = $self->config('pubsubhubbub')) {
       my $pubsubhubbub = ReseqTrack::WebsiteUpdater::Model::PubSubHubBub->new(
         rss => "$dir/_site/$rss",
       );
