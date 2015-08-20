@@ -101,12 +101,14 @@ sub update_project_now {
     foreach my $dest (@{$project_config->{rsync_dests}}) {
       $rsync->exec(src => "$dir/_site/", dest => $dest) or reset_and_return("could not rsync $dir/_site/ to $dest ". scalar $rsync->lastcmd);
     }
-    reset_and_return();;
+    reset_and_return();
   },
   [$self],
   sub {
     my ($self, @handler_args) = @_;
-    $self->app->log->info(@handler_args);
+    if (@handler_args) {
+      $self->app->log->info(@handler_args);
+    }
   });
 
 
