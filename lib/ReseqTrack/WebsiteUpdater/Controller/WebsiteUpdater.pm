@@ -112,8 +112,8 @@ sub update_project_now {
       my $pubsubhubbub = ReseqTrack::WebsiteUpdater::Model::PubSubHubBub->new(
         rss => "$dir/_site/$rss",
       );
-      eval{$pubsubhubbub->publish;};
-      reset_and_return('error encoutered while publishing to pubsubhubbub') if $@;
+      eval{$pubsubhubbub->publish or die "publish did not work";};
+      reset_and_return("error encoutered while publishing to pubsubhubbub: $@") if $@;
     }
 
     reset_and_return();
