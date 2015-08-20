@@ -7,7 +7,7 @@ sub startup {
     $self->plugin('Config', file => $self->home->rel_file('config/website_updater.conf'));
     $self->plugin('ForkCall');
 
-    $self->routes->get('/update_project/:project')->to(controller => 'website_updater', action=> 'update_project');
+    $self->routes->route('/update_project/:project')->via(qw(GET POST))->to(controller => 'website_updater', action=> 'update_project');
 
 }
 
