@@ -107,6 +107,15 @@ sub update_project_now {
     foreach my $dest (@{$project_config->{rsync_dests}}) {
       $rsync->exec(src => "$dir/_site/", dest => $dest) or reset_and_return("could not rsync $dir/_site/ to $dest ". scalar $rsync->lastcmd);
     }
+
+    if (my $rss = $self->publish_pubsubhubbub) {
+      my $pubsubhubbub = ReseqTrack::WebsiteUpdater::Model::PubSubHubBub->new(
+        rss => "$dir/_site/$rss",
+      );
+      eval{$pubsubhubbub->publish;};
+      reset_and_return('error encoutered while publishing to pubsubhubbub') if $@;
+    }
+
     reset_and_return();
   },
   [$self],
@@ -125,6 +134,5 @@ sub server_error {
   $self->app->log->info($msg);
   return $self->render(text=>"server error, see log file for details\n", status=>500);
 }
-
 
 1;

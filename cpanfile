@@ -4,6 +4,10 @@ requires 'File::Path';
 requires 'EnsEMBL::Git';
 requires 'Mojolicious::Plugin::ForkCall';
 requires 'JSON';
+requires 'namespace::autoclean';
+requires 'Moose';
+requires 'XML::RSS::Parser';
+requires 'FileHandle';
 
 on 'build' => sub {
     requires 'Module::Build::Pluggable';
