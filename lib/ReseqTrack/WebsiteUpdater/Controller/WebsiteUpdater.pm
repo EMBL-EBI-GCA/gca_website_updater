@@ -9,7 +9,6 @@ use ReseqTrack::WebsiteUpdater::Model::PubSubHubBub;
 
 sub update_project {
   my ($self) = @_;
-  
   my $project = $self->stash('project');
   my $project_config = $self->config('projects')->{$project};
   return $self->render(text=>"project $project does not exist\n", status=>404) if !$project_config;
