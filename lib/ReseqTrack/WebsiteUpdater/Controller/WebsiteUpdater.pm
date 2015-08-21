@@ -42,7 +42,7 @@ sub update_project {
         Mojo::IOLoop->timer($time_to_sleep => sub {
           $current_time = time();
           spurt("running $current_time\n", $log_file) or return $self->app->log->info("could not spurt to $log_file $!");
-          $self->update_project_now();
+          $self->run_git_update(callback => \&run_pubsubhubbub);
         });
         return;
       }
@@ -51,21 +51,36 @@ sub update_project {
 
   spurt("running $current_time\n", $log_file) or return $self->server_error("could not spurt to $log_file $!");
   $self->render(text => "update will run now\n");
-  $self->update_project_now();
+
+  $self->run_git_update(callback => \&run_pubsubhubbub);
+
 }
 
-
-sub update_project_now {
+sub run_pubsubhubbub {
   my ($self) = @_;
+  my $rss = $self->config('pubsubhubbub');
+  return if !$rss;
+  my $pubsubhubbub = ReseqTrack::WebsiteUpdater::Model::PubSubHubBub->new(
+    rss => "$dir/_site/$rss",
+    error_callback => sub {$self->app->log->info(@_)},
+    success_callback => sub {$self->app->log->info("success ",@_)},
+  );
+  $pubsubhubbub->publish();
+
+}
+
+sub run_git_update {
+  my ($self, %args) = @_;
 
   $self->fork_call( sub {
     my ($self) = @_;
     my $project = $self->stash('project');
     my $project_config = $self->config('projects')->{$project};
+    my $dir = $project_config->{'git_directory'} or return $self->app->log->info("no git_directory for $project");
+
     my $git_branch = $project_config->{branch} || 'master';
     my $git_remote = $project_config->{remote} || 'origin';
 
-    my $dir = $project_config->{'git_directory'} or return ("no git_directory for $project");
     chdir $dir or return ("could not change to $dir");
 
 
@@ -108,14 +123,6 @@ sub update_project_now {
       $rsync->exec(src => "$dir/_site/", dest => $dest) or reset_and_return("could not rsync $dir/_site/ to $dest ". scalar $rsync->lastcmd);
     }
 
-    if (my $rss = $self->config('pubsubhubbub')) {
-      my $pubsubhubbub = ReseqTrack::WebsiteUpdater::Model::PubSubHubBub->new(
-        rss => "$dir/_site/$rss",
-      );
-      eval{$pubsubhubbub->publish or die "publish did not work";};
-      reset_and_return("error encoutered while publishing to pubsubhubbub: $@") if $@;
-    }
-
     reset_and_return();
   },
   [$self],
@@ -123,7 +130,12 @@ sub update_project_now {
     my ($self, @handler_args) = @_;
     if (@handler_args) {
       $self->app->log->info(@handler_args);
+      return;
     }
+    if (my $callback = $args->{callback}) {
+      $callback->($self);
+    }
+
   });
 
 
