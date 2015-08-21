@@ -42,7 +42,7 @@ sub update_project {
         Mojo::IOLoop->timer($time_to_sleep => sub {
           $current_time = time();
           spurt("running $current_time\n", $log_file) or return $self->app->log->info("could not spurt to $log_file $!");
-          $self->run_git_update(callback => \&run_pubsubhubbub);
+          $self->run_git_update(callback => \&run_pubsubhubbub, callback_args => [$project_config]);
         });
         return;
       }
@@ -52,14 +52,15 @@ sub update_project {
   spurt("running $current_time\n", $log_file) or return $self->server_error("could not spurt to $log_file $!");
   $self->render(text => "update will run now\n");
 
-  $self->run_git_update(callback => \&run_pubsubhubbub);
+  $self->run_git_update(callback => \&run_pubsubhubbub, callback_args => [$project_config]);
 
 }
 
 sub run_pubsubhubbub {
-  my ($self) = @_;
-  my $rss = $self->config('pubsubhubbub');
+  my ($self, $project_config) = @_;
+  my $rss = $project_config{'pubsubhubbub'};
   return if !$rss;
+  my $dir = $project_config->{'git_directory'};
   my $pubsubhubbub = ReseqTrack::WebsiteUpdater::Model::PubSubHubBub->new(
     rss => "$dir/_site/$rss",
     error_callback => sub {$self->app->log->info(@_)},
@@ -132,8 +133,8 @@ sub run_git_update {
       $self->app->log->info(@handler_args);
       return;
     }
-    if (my $callback = $args->{callback}) {
-      $callback->($self);
+    if (my $callback = $args{callback}) {
+      $callback->($self, @{$args{callback_args}});
     }
 
   });
