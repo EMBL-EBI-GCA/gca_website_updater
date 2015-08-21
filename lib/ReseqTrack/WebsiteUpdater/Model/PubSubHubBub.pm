@@ -1,7 +1,6 @@
 package ReseqTrack::WebsiteUpdater::Model::PubSubHubBub;
 use namespace::autoclean;
 use Moose;
-use Mojo::UserAgent;
 use XML::RSS::Parser;
 use FileHandle;
 
@@ -17,7 +16,7 @@ sub error {
 }
 
 sub publish {
-  my ($self, %args) = @_;
+  my ($self) = @_;
   eval {
     my $rss = $self->rss;
     die "did not find file $rss"  if ! -f $rss;
@@ -27,25 +26,18 @@ sub publish {
     my $feed = $parser->parse_file($fh);
 
     my $hub_href =  $feed->query('/channel/atom:link[@rel="hub"]/@atom:href');
-    die "no hub link in rss feed" if !$hub_href;
-    my $rss_href =  $feed->query('/channel/atom:link[@rel="rel"]/@atom:href');
-    die "no rel link in rss feed"  if !$rss_href;
-    my $ua = Mojo::UserAgent->new()
-    my $tx = $ua->post($hub_href, form => {'hub.mode' => 'publish', 'hub.url' => $rss_href}
-        => sub {
-            my ($ua, $tx) = @_;
-            if ($tx->success) {
-              if (my $callback = $args->{success_callback}) {
-                $callback->($tx->res->content->body);
-              }
-            }
-            else {
-              $self->error("pubsubhubbub publish unsuccessulf ".$tx->error->{code}.': '.$tx->res->content->body);
-              }
-            }
-        );
+    die "no hub link in rss feed $rss" if !$hub_href;
+    my $rss_href =  $feed->query('/channel/atom:link[@rel="self"]/@atom:href');
+    die "no self link in rss feed $rss"  if !$rss_href;
+    system("curl -XPOST -i $hub_href -d 'hub.mode=publish&hub.url=$rss_href'");
+    die("failed to run curl $hub_href: $!") if $?;
+    if (my $signal = $? & 127) {
+      die("curl exited with with $signal");
+    }
+    if (my $exit = $? >>8) {
+      die("curl exited with code $exit");
+    }
 
-    $ua->ioloop->start if !$ua->ioloop->is_running;
   };
   if ($@) {
     $self->error($@);

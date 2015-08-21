@@ -6,10 +6,11 @@ use EnsEMBL::Git;
 use File::Rsync;
 use File::Path;
 use JSON qw();
+use ReseqTrack::WebsiteUpdater::Model::PubSubHubBub;
 
 sub update_project {
   my ($self) = @_;
-
+  
   my $project = $self->stash('project');
   my $project_config = $self->config('projects')->{$project};
   return $self->render(text=>"project $project does not exist\n", status=>404) if !$project_config;
@@ -58,7 +59,7 @@ sub update_project {
 
 sub run_pubsubhubbub {
   my ($self, $project_config) = @_;
-  my $rss = $project_config{'pubsubhubbub'};
+  my $rss = $project_config->{'pubsubhubbub'};
   return if !$rss;
   my $dir = $project_config->{'git_directory'};
   my $pubsubhubbub = ReseqTrack::WebsiteUpdater::Model::PubSubHubBub->new(
@@ -66,7 +67,12 @@ sub run_pubsubhubbub {
     error_callback => sub {$self->app->log->info(@_)},
     success_callback => sub {$self->app->log->info("success ",@_)},
   );
-  $pubsubhubbub->publish();
+
+  $self->fork_call( sub {
+    my ($pubsubhubbub) = @_;
+    $pubsubhubbub->publish();
+  }, [$pubsubhubbub], sub {return;}
+  );
 
 }
 
