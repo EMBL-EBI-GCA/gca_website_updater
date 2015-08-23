@@ -3,9 +3,9 @@ use namespace::autoclean;
 use Moose;
 use XML::RSS::Parser;
 use FileHandle;
+use HTTP::Tiny;
 
 has 'rss' => (is => 'rw', isa => 'Str', required=>1);
-has 'success_callback' => (is => 'rw', isa => 'CodeRef');
 has 'error_callback' => (is => 'rw', isa => 'CodeRef');
 
 sub error {
@@ -29,14 +29,9 @@ sub publish {
     die "no hub link in rss feed $rss" if !$hub_href;
     my $rss_href =  $feed->query('/channel/atom:link[@rel="self"]/@atom:href');
     die "no self link in rss feed $rss"  if !$rss_href;
-    system("curl -XPOST -i $hub_href -d 'hub.mode=publish&hub.url=$rss_href'");
-    die("failed to run curl $hub_href: $!") if $?;
-    if (my $signal = $? & 127) {
-      die("curl exited with with $signal");
-    }
-    if (my $exit = $? >>8) {
-      die("curl exited with code $exit");
-    }
+
+    my $response = HTTP::Tiny->new->post_form($hub_href, {'hub.mode'=> 'publish', 'hub.url' => $rss_href});
+    die "post to $hub_href failed: ".$response->{status}.$response->{content} if  $response->{status} !~ /^2\d\d$/;
 
   };
   if ($@) {

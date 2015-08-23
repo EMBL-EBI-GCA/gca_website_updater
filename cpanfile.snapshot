@@ -347,6 +347,23 @@ DISTRIBUTIONS
       IO::Socket 0
       Socket 1.97
       Test::More 0.88
+  IO-Socket-SSL-2.016
+    pathname: S/SU/SULLR/IO-Socket-SSL-2.016.tar.gz
+    provides:
+      IO::Socket::SSL 2.016
+      IO::Socket::SSL::Intercept 2.014
+      IO::Socket::SSL::OCSP_Cache 2.016
+      IO::Socket::SSL::OCSP_Resolver 2.016
+      IO::Socket::SSL::PublicSuffix undef
+      IO::Socket::SSL::SSL_Context 2.016
+      IO::Socket::SSL::SSL_HANDLE 2.016
+      IO::Socket::SSL::Session_Cache 2.016
+      IO::Socket::SSL::Utils 2.014
+    requirements:
+      ExtUtils::MakeMaker 0
+      Mozilla::CA 0
+      Net::SSLeay 1.46
+      Scalar::Util 0
   IPC-Run3-0.048
     pathname: R/RJ/RJBS/IPC-Run3-0.048.tar.gz
     provides:
@@ -1005,6 +1022,24 @@ DISTRIBUTIONS
       parent 0.223
       strict 1.03
       warnings 1.03
+  Mozilla-CA-20141217
+    pathname: A/AB/ABH/Mozilla-CA-20141217.tar.gz
+    provides:
+      Mozilla::CA 20141217
+    requirements:
+      ExtUtils::MakeMaker 0
+      Test 0
+      perl 5.006
+  Net-SSLeay-1.70
+    pathname: M/MI/MIKEM/Net-SSLeay-1.70.tar.gz
+    provides:
+      Net::SSLeay 1.70
+      Net::SSLeay::Handle 0.61
+    requirements:
+      ExtUtils::MakeMaker 6.36
+      MIME::Base64 0
+      Test::More 0.60_01
+      perl 5.005
   Package-DeprecationManager-0.14
     pathname: D/DR/DROLSKY/Package-DeprecationManager-0.14.tar.gz
     provides:

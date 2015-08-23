@@ -7,6 +7,8 @@ requires 'namespace::autoclean';
 requires 'Moose';
 requires 'XML::RSS::Parser';
 requires 'FileHandle';
+requires 'HTTP::Tiny';
+requires 'IO::Socket::SSL';
 
 on 'build' => sub {
     requires 'Module::Build::Pluggable';
