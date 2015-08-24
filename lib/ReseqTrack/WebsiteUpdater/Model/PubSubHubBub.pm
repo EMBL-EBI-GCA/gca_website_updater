@@ -15,6 +15,7 @@ sub error {
   }
 }
 
+# This sub is blocking, so only ever call it from a forked process
 sub publish {
   my ($self) = @_;
   eval {
