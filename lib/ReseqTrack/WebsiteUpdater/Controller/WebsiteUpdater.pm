@@ -5,19 +5,13 @@ use Mojo::Util qw(slurp spurt);
 use EnsEMBL::Git;
 use File::Rsync;
 use File::Path;
-use JSON qw();
+use ReseqTrack::WebsiteUpdater::Model::PubSubHubBub;
 
 sub update_project {
   my ($self) = @_;
-
   my $project = $self->stash('project');
   my $project_config = $self->config('projects')->{$project};
   return $self->render(text=>"project $project does not exist\n", status=>404) if !$project_config;
-
-  my $req_json;
-  eval { $req_json = JSON::decode_json($self->req->body); };
-  return $self->render(text => 'error encoutered while parsing JSON', status => 400) if $@;
-  return $self->render(text=>"not parsing failed builds\n") if $req_json->{'error'};
 
   my $log_dir = $self->config('updating_log_dir') || $self->app->home->rel_dir('var/run');
   File::Path::make_path($log_dir);
@@ -58,7 +52,7 @@ sub update_project {
 
 sub run_pubsubhubbub {
   my ($self, $project_config) = @_;
-  my $rss = $project_config{'pubsubhubbub'};
+  my $rss = $project_config->{'pubsubhubbub'};
   return if !$rss;
   my $dir = $project_config->{'git_directory'};
   my $pubsubhubbub = ReseqTrack::WebsiteUpdater::Model::PubSubHubBub->new(
@@ -66,7 +60,12 @@ sub run_pubsubhubbub {
     error_callback => sub {$self->app->log->info(@_)},
     success_callback => sub {$self->app->log->info("success ",@_)},
   );
-  $pubsubhubbub->publish();
+
+  $self->fork_call( sub {
+    my ($pubsubhubbub) = @_;
+    $pubsubhubbub->publish();
+  }, [$pubsubhubbub], sub {return;}
+  );
 
 }
 

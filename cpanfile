@@ -3,11 +3,12 @@ requires 'File::Rsync';
 requires 'File::Path';
 requires 'EnsEMBL::Git';
 requires 'Mojolicious::Plugin::ForkCall';
-requires 'JSON';
 requires 'namespace::autoclean';
 requires 'Moose';
 requires 'XML::RSS::Parser';
 requires 'FileHandle';
+requires 'HTTP::Tiny';
+requires 'IO::Socket::SSL';
 
 on 'build' => sub {
     requires 'Module::Build::Pluggable';
