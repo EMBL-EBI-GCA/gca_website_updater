@@ -6,6 +6,7 @@ use EnsEMBL::Git;
 use File::Rsync;
 use File::Path;
 use ReseqTrack::WebsiteUpdater::Model::PubSubHubBub;
+use ReseqTrack::WebsiteUpdater::Model::ElasticSitemapIndexer;
 
 sub update_project {
   my ($self) = @_;
@@ -46,7 +47,10 @@ sub update_project {
   spurt("running $current_time\n", $log_file) or return $self->server_error("could not spurt to $log_file $!");
   $self->render(text => "update will run now\n");
 
-  $self->run_git_update(callback => \&run_pubsubhubbub, callback_args => [$project_config]);
+  $self->run_git_update(
+    {callback => \&run_pubsubhubbub, callback_args => [$project_config]},
+    {callback => \&run_es_sitemap, callback_args => [$project_config]},
+    );
 
 }
 
@@ -58,7 +62,6 @@ sub run_pubsubhubbub {
   my $pubsubhubbub = ReseqTrack::WebsiteUpdater::Model::PubSubHubBub->new(
     rss => "$dir/_site/$rss",
     error_callback => sub {$self->app->log->info(@_)},
-    success_callback => sub {$self->app->log->info("success ",@_)},
   );
 
   $self->fork_call( sub {
@@ -69,8 +72,29 @@ sub run_pubsubhubbub {
 
 }
 
+sub run_es_sitemap {
+  my ($self, $project_config) = @_;
+  my $es_sitemap_index = $project_config->{'es_sitemap_index'};
+  return if !$es_sitemap_index;
+  my $dir = $project_config->{'git_directory'};
+  my $es_sitemap_indexer = ReseqTrack::WebsiteUpdater::Model::ElasticSitemapIndexer->new(
+    site_dir => $project_config->{'git_directory'}.'/_site',
+    index => $self->stash('project'),
+    hosts => $es_sitemap_index->{'hosts'},
+    filter_tags => $es_sitemap_index->{'filter_tags'},
+    error_callback => sub {$self->app->log->info(@_);},
+  );
+
+  $self->fork_call( sub {
+    my ($es_sitemap_indexer) = @_;
+    $es_sitemap_indexer->run();
+  }, [$es_sitemap_indexer], sub {return;}
+  );
+
+}
+
 sub run_git_update {
-  my ($self, %args) = @_;
+  my ($self, @callbacks) = @_;
 
   $self->fork_call( sub {
     my ($self) = @_;
@@ -132,8 +156,10 @@ sub run_git_update {
       $self->app->log->info(@handler_args);
       return;
     }
-    if (my $callback = $args{callback}) {
-      $callback->($self, @{$args{callback_args}});
+    foreach my $callback_hash (@callbacks) {
+      if (my $callback = $callback_hash->{callback}) {
+        $callback->($self, @{$callback_hash->{callback_args}});
+      }
     }
 
   });
