@@ -102,7 +102,7 @@ sub build_index {
     $content =~ s{<[^<>]+>}{}gs;
     $content =~ s{\s+}{ }gs;
 
-    $es_index{$url} = {content => Encode::encode('UTF-8', $content), title => $title, url => $url};
+    $es_index{$url} = {content => $content, title => $title, url => $url};
 
   }
   return \%es_index;
