@@ -101,6 +101,8 @@ sub build_index {
     }
     $content =~ s{<[^<>]+>}{}gs;
     $content =~ s{\s+}{ }gs;
+    $content = Encode::decode('UTF-8', $content);
+    $title = Encode::decode('UTF-8', $title);
 
     $es_index{$url} = {content => $content, title => $title, url => $url};
 
