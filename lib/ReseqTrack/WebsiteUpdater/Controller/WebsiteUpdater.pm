@@ -37,7 +37,7 @@ sub update_project {
         Mojo::IOLoop->timer($time_to_sleep => sub {
           $current_time = time();
           spurt("running $current_time\n", $log_file) or return $self->app->log->info("could not spurt to $log_file $!");
-          $self->run_git_update(callback => \&run_pubsubhubbub, callback_args => [$project_config]);
+          $self->run_git_update({callback => \&run_pubsubhubbub, callback_args => [$project_config]});
         });
         return;
       }
