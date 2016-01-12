@@ -9,9 +9,7 @@ requires 'XML::RSS::Parser';
 requires 'FileHandle';
 requires 'HTTP::Tiny';
 requires 'IO::Socket::SSL';
-requires 'Encode';
 requires 'HTML::Entities';
-requires 'XML::Twig';
 
 on 'build' => sub {
     requires 'Module::Build::Pluggable';
