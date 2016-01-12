@@ -1,18 +1,15 @@
 package ReseqTrack::WebsiteUpdater::Model::ElasticSitemapIndexer;
 use namespace::autoclean;
 use Moose;
-use Mojo::Util qw(slurp spurt url_unescape);
-use XML::Twig;
+use Mojo::Util qw(slurp);
 use HTTP::Tiny;
 use JSON qw(encode_json decode_json);
-use Encode qw();
 use HTML::Entities qw();
 
-has 'site_dir' => (is => 'rw', isa => 'Str', required=>1);
 has 'index' => (is => 'rw', isa => 'Str', required=>1);
 has 'type' => (is => 'rw', isa => 'Str', default => 'sitemap');
 has 'hosts' => (is => 'rw', isa => 'ArrayRef[Str]', required=>1);
-has 'filter_tags' => (is => 'rw', isa => 'ArrayRef[Str]', default => sub {return []});
+has 'search_index_file' => (is => 'rw', isa => 'Str', required=>1);
 has 'error_callback' => (is => 'rw', isa => 'CodeRef');
 
 sub error {
@@ -77,35 +74,15 @@ sub load_index {
 
 sub build_index {
   my ($self) = @_;
-  my $site_dir = $self->site_dir;
-  die "did not find directory $site_dir"  if ! -d $site_dir;
-  die "did not find sitemap $site_dir/sitemap.xml"  if ! -f "$site_dir/sitemap.xml";
-  my $twig = XML::Twig::->new;
-  $twig->parsefile("$site_dir/sitemap.xml");
+  my $search_index_file = $self->search_index_file;
+  die "did not find file $search_index_file"  if ! -f $search_index_file;
+
+  my $search_json = slurp($search_index_file) or die "could not slurp $search_index_file $!";
+  my $search_array = decode_json($search_json);
   my %es_index;
-  foreach my $url ($twig->root->findvalues('/urlset/url/loc')) {
-    my $path = url_unescape($url);
-    $path =~ s{^http://[^/]*}{};
-    $path = $site_dir.$path;
-    $path = Encode::decode('UTF-8', $path);
-    if (-d $path) {
-      $path .= '/index.html';
-    }
-    my $content = slurp($path) or die "could not slurp $path $!";
-
-    my ($title) = $content =~ m{<title(?: [^>]*)?>(.*?)</title(?: [^>]*)?>}s;
-
-    $content = HTML::Entities::decode_entities($content);
-    foreach my $tag (@{$self->filter_tags}) {
-      $content =~ s{<$tag(?: [^>]*)?>.*?</$tag(?: [^>]*)?>}{}gs;
-    }
-    $content =~ s{<[^<>]+>}{}gs;
-    $content =~ s{\s+}{ }gs;
-    $content = Encode::decode('UTF-8', $content);
-    $title = Encode::decode('UTF-8', $title);
-
-    $es_index{$url} = {content => $content, title => $title, url => $url};
-
+  foreach my $page (@$search_array) {
+    $page->{content} = HTML::Entities::decode_entities($page->{content});
+    $es_index{$page->{url}} = $page;
   }
   return \%es_index;
 }

@@ -78,10 +78,9 @@ sub run_es_sitemap {
   return if !$es_sitemap_index;
   my $dir = $project_config->{'git_directory'};
   my $es_sitemap_indexer = ReseqTrack::WebsiteUpdater::Model::ElasticSitemapIndexer->new(
-    site_dir => $project_config->{'git_directory'}.'/_site',
     index => $self->stash('project'),
     hosts => $es_sitemap_index->{'hosts'},
-    filter_tags => $es_sitemap_index->{'filter_tags'},
+    search_index_file => join('/', $project_config->{'git_directory'}, '_site', $es_sitemap_index->{'search_index_file'}),
     error_callback => sub {$self->app->log->info(@_);},
   );
 
