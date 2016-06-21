@@ -3,35 +3,26 @@ use namespace::autoclean;
 use Moose;
 use Mojo::Util qw(slurp);
 use HTTP::Tiny;
-use JSON qw(encode_json decode_json);
+use Mojo::JSON qw(encode_json decode_json);
 use HTML::Entities qw();
 
 has 'index' => (is => 'rw', isa => 'Str', required=>1);
-has 'type' => (is => 'rw', isa => 'Str', default => 'sitemap');
+has 'type' => (is => 'rw', isa => 'Str');
 has 'hosts' => (is => 'rw', isa => 'ArrayRef[Str]', required=>1);
 has 'search_index_file' => (is => 'rw', isa => 'Str', required=>1);
-has 'error_callback' => (is => 'rw', isa => 'CodeRef');
-
-sub error {
-  my ($self, $string) = @_;
-  if (my $cb = $self->error_callback) {
-    $cb->($string);
-  }
-}
 
 # This sub is blocking, so only ever call it from a forked process
+# It does not catch errors
 sub run {
   my ($self) = @_;
-  eval {
-    my $index = $self->build_index;
-    foreach my $host (@{$self->hosts}) {
-      $self->load_index($host, $index);
-    }
 
-  };
-  if ($@) {
-    $self->error($@);
+  $self->type($self->type // 'sitemap');
+
+  my $index = $self->build_index;
+  foreach my $host (@{$self->hosts}) {
+    $self->load_index($host, $index);
   }
+
 
 }
 
