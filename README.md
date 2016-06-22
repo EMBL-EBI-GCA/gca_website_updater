@@ -8,6 +8,7 @@ The only endpoint is /update_project/{project_name}
 e.g. curl -XPOST http://localhost:8001/update_project/hipsci
 
 The process is basically this:
+
 1. Queries the rate limiter to find out if the project is already updating
     * Queues up a delayed job if the project is already updating
     * ..or exits if a job is already queued
