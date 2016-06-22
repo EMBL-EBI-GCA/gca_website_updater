@@ -58,6 +58,11 @@ sub begin {
   $self->spurt("running $current_time\n");
 }
 
+sub error {
+  my ($self) = @_;
+  $self->spurt('');
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;

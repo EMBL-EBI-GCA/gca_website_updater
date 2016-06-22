@@ -15,7 +15,7 @@ sub run {
 
   my ($success, $error_message, $full_buf, $stdout_buf, $stderr_buf) =
     IPC::Cmd::run(command => 'bundle exec jekyll build');
-  die "$error_message\n$stderr_buf" if !$success;
+  die join("\n", $error_message, @$stderr_buf) if !$success;
 
 }
 

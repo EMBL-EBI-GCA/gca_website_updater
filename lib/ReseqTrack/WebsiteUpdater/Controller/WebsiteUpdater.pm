@@ -16,6 +16,7 @@ sub update_project {
     my $project = $self->stash('project');
     my $project_config = $self->config('projects')->{$project};
     return $self->reply->not_found if !$project_config;
+    $self->stash(project_config => $project_config);
     my $log_dir = $self->config('updating_log_dir') || $self->app->home->rel_dir('var/run');
     File::Path::make_path($log_dir);
 
@@ -87,7 +88,7 @@ sub update_project {
         $self->fork_call(sub {eval {$git_updater->cleanup;};}, [], sub {return;});
       }
       $self->handle_error($err);
-      $self->app->log->error($@);
+      $rate_limiter->unset;
     });
 
   };
@@ -100,13 +101,14 @@ sub update_project {
 sub handle_error {
   my ($self, $error) = @_;
   $self->app->log->error($error);
-  if (my $email_to = $self->config('email_to')) {
-    eval {$self->mail(
+  my $project_config = $self->stash('project_config');
+  if (my $email_to = $project_config->{email_to}) {
+    $self->mail(
       to => $email_to,
-      subject => 'Error in the static website updater for project '.$self->stash('project'),
+      from => $project_config->{email_from},
+      subject => 'Error in the website updater for project '.$self->stash('project'),
       data => $error,
-    );};
-    $self->app->log->error($@);
+    );
   }
 }
 
