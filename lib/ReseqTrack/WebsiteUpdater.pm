@@ -14,6 +14,7 @@ sub startup {
       type => 'text/html',
     });
 
+    # This plugin ensures that the updates are only allowed to run every 120 seconds
     $self->plugin('ReseqTrack::WebsiteUpdater::Plugins::RateLimiter',
       projects => [keys %{$self->config('projects')}],
       period => $self->config('updating_limiter'),
