@@ -8,6 +8,7 @@ use ReseqTrack::WebsiteUpdater::Model::ElasticSitemapIndexer;
 use ReseqTrack::WebsiteUpdater::Model::GitUpdater;
 use ReseqTrack::WebsiteUpdater::Model::Rsyncer;
 use ReseqTrack::WebsiteUpdater::Model::Jekyll;
+use Mojo::IOLoop::ForkCall;
 
 sub update_project {
   my ($self) = @_;
@@ -99,10 +100,14 @@ sub update_project {
 sub handle_error {
   my ($self, $error) = @_;
   $self->app->log->error($error);
-  $self->mail(
-    subject => 'Error in the static website updater for project '.$self->stash('project'),
-    data => $error,
-  );
+  if (my $email_to = $self->config('email_to')) {
+    eval {$self->mail(
+      to => $email_to,
+      subject => 'Error in the static website updater for project '.$self->stash('project'),
+      data => $error,
+    );};
+    $self->app->log->error($@);
+  }
 }
 
 1;
