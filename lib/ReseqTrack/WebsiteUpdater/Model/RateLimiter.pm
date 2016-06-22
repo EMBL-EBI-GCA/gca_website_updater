@@ -14,8 +14,7 @@ has '_current_time' => (is => 'rw', isa => 'Int');
 sub begin {
   my ($self) = @_;
   my $current_time = $self->_current_time(time());
-  my $time_to_sleep = $self->has_run_time ? 0
-      : $self->run_time + $self->period - $current_time;
+  my $time_to_sleep = $self->has_run_time ? $self->_run_time + $self->period - $current_time : 0;
   $time_to_sleep = $time_to_sleep < 0 ? 0 : $time_to_sleep;
 
   $self->time_to_sleep($time_to_sleep);

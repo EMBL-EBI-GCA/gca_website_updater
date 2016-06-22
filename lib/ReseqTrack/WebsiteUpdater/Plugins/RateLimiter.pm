@@ -8,7 +8,7 @@ sub register {
     my $projects = $args->{projects} // [];
     my %hash;
     foreach my $project (@$projects) {
-      $hash{project} = ReseqTrack::WebsiteUpdater::Model::RateLimiter->new(
+      $hash{$project} = ReseqTrack::WebsiteUpdater::Model::RateLimiter->new(
         period => $args->{period}
       );
     }
