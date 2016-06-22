@@ -1,7 +1,6 @@
 package ReseqTrack::WebsiteUpdater::Controller::WebsiteUpdater;
 use Mojo::Base 'Mojolicious::Controller';
 use Mojo::IOLoop;
-use File::Path;
 use ReseqTrack::WebsiteUpdater::Model::RateLimiter;
 use ReseqTrack::WebsiteUpdater::Model::PubSubHubBub;
 use ReseqTrack::WebsiteUpdater::Model::ElasticSitemapIndexer;
@@ -17,29 +16,33 @@ sub update_project {
     my $project_config = $self->config('projects')->{$project};
     return $self->reply->not_found if !$project_config;
     $self->stash(project_config => $project_config);
-    my $log_dir = $self->config('updating_log_dir') || $self->app->home->rel_dir('var/run');
-    File::Path::make_path($log_dir);
 
-    my $rate_limiter = ReseqTrack::WebsiteUpdater::Model::RateLimiter->new(
-      period => $self->config('updating_limiter'),
-      log_file => sprintf('%s/%s.log', $log_dir, $project),
-      );
-    $rate_limiter->wait;
+    my $rate_limiter = $self->rate_limiter($project);
+    die "did not get rate limiter for $project" if !$rate_limiter;
+
+    $rate_limiter->begin;
     if ($rate_limiter->time_to_sleep){
       $self->render(text => sprintf('update will run in %s seconds', $rate_limiter->time_to_sleep));
     }
     else {
       $self->render(text => 'update will run now');
     }
-    return if !$rate_limiter->continue;
+    return if $rate_limiter->is_queuing;
 
     Mojo::IOLoop->delay(sub {
       my ($delay) = @_;
-      Mojo::IOLoop->timer($rate_limiter->time_to_sleep => $delay->begin);
+      if ($rate_limiter->is_running) {
+        $rate_limiter->queue;
+        Mojo::IOLoop->timer($rate_limiter->time_to_sleep => $delay->begin);
+      }
+      else {
+        $delay->pass;
+      }
     },
     sub {
       my ($delay) = @_;
-      $rate_limiter->begin;
+      $rate_limiter->run;
+      $self->stash(rate_limiter => $rate_limiter);
       my $git_updater = ReseqTrack::WebsiteUpdater::Model::GitUpdater->new(
             branch => $project_config->{branch},
             remote => $project_config->{remote},
@@ -82,6 +85,7 @@ sub update_project {
       my ($delay, $err) = @_;
       die $err if $err;
       $self->fork_call(sub {eval {$delay->data('git_updater')->cleanup;};}, [], sub {return;});
+      $rate_limiter->finished_running;
     })->catch(sub {
       my ($delay, $err) = @_;
       if (my $git_updater = $delay->data('git_updater')) {
@@ -101,6 +105,9 @@ sub update_project {
 sub handle_error {
   my ($self, $error) = @_;
   $self->app->log->error($error);
+  if (my $rate_limiter = $self->stash('rate_limiter')) {
+    $rate_limiter->finished_running;
+  }
   my $project_config = $self->stash('project_config');
   if (my $email_to = $project_config->{email_to}) {
     $self->mail(
