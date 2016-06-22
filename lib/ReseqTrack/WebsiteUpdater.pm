@@ -19,7 +19,10 @@ sub startup {
       period => $self->config('updating_limiter'),
       );
 
-    $self->routes->post('/update_project/:project')->to(controller => 'website_updater', action=> 'update_project', email_to => $self->config('email_to'));
+    $self->routes->post('/update_project/:project')->to(
+        controller => 'website_updater',
+        action=> 'update_project',
+      );
 
 }
 

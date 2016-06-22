@@ -112,7 +112,6 @@ sub handle_error {
   if (my $email_to = $project_config->{email_to}) {
     $self->mail(
       to => $email_to,
-      from => $project_config->{email_from},
       subject => 'Error in the website updater for project '.$self->stash('project'),
       data => $error,
     );
