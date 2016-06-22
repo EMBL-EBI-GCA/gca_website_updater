@@ -46,66 +46,33 @@ sub update_project {
       # Put the git updater on delay->data so destructor gets called when loop has finished.
       $delay->data(git_updater => $git_updater);
       $self->fork_call( 
-        sub {
-          eval {$git_updater->run;};
-          return $@;
-        }, [], $delay->begin(1)
-      );
-    },
-    sub {
-      my ($delay, $err) = @_;
-      die $err if $err;
-      my $jekyll = ReseqTrack::WebsiteUpdater::Model::Jekyll->new(
-            directory => $project_config->{git_directory},
-          );
-      $self->fork_call( 
-        sub {
-          eval {$jekyll->run;};
-          return $@;
-        }, [], $delay->begin(1)
-      );
-    },
-    sub {
-      my ($delay, $err) = @_;
-      die $err if $err;
-      my $rsyncer = ReseqTrack::WebsiteUpdater::Model::Rsyncer->new(
-            local_dir => $project_config->{git_directory} .'/_site/',
-            remote_dests => $project_config->{rsync_dests},
-          );
-      $self->fork_call( 
-        sub {
-          eval {$rsyncer->run;};
-          return $@;
-        }, [], $delay->begin(1)
-      );
-    },
-    sub {
-      my ($delay, $err) = @_;
-      die $err if $err;
-      my $es_sitemap_index = $project_config->{'es_sitemap_index'};
-      return $delay->pass if !$es_sitemap_index;
-      $self->fork_call( 
-        sub {
-          eval{ ReseqTrack::WebsiteUpdater::Model::ElasticSitemapIndexer->new(
-            index => $self->stash('project'),
-            hosts => $es_sitemap_index->{'hosts'},
-            search_index_file => join('/', $project_config->{'git_directory'}, '_site', $es_sitemap_index->{'search_index_file'}),
-          )->run();};
-          return $@;
-        }, [], $delay->begin(1)
-      );
-    },
-    sub {
-      my ($delay, $err) = @_;
-      die $err if $err;
-      my $rss = $project_config->{'pubsubhubbub'};
-      return $delay->pass if !$rss;
-      $self->fork_call( 
         sub { eval {
-          ReseqTrack::WebsiteUpdater::Model::PubSubHubBub->new(
-            rss => sprintf('%s/_site/%s', $project_config->{git_directory}, $rss),
-          )->publish;
-          }; return $@;
+          $git_updater->run;
+          ReseqTrack::WebsiteUpdater::Model::Jekyll->new(
+                directory => $project_config->{git_directory},
+              )->run;
+          
+          ReseqTrack::WebsiteUpdater::Model::Rsyncer->new(
+                local_dir => $project_config->{git_directory} .'/_site/',
+                remote_dests => $project_config->{rsync_dests},
+              )->run;
+
+          if (my $es_sitemap_index = $project_config->{'es_sitemap_index'}) {
+            ReseqTrack::WebsiteUpdater::Model::ElasticSitemapIndexer->new(
+              index => $self->stash('project'),
+              hosts => $es_sitemap_index->{'hosts'},
+              search_index_file => join('/', $project_config->{'git_directory'}, '_site', $es_sitemap_index->{'search_index_file'}),
+            )->run();
+          }
+
+          if (my $rss = $project_config->{'pubsubhubbub'}) {
+            ReseqTrack::WebsiteUpdater::Model::PubSubHubBub->new(
+              rss => sprintf('%s/_site/%s', $project_config->{git_directory}, $rss),
+            )->publish;
+          }
+          
+          };
+          return $@;
         }, [], $delay->begin(1)
       );
     },
