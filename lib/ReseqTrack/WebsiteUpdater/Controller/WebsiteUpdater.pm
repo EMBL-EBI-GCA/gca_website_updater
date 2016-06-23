@@ -101,7 +101,7 @@ sub _run_update_process {
       };
       return $@;
     }, [], sub {
-      my ($err) = @_;
+      my ($self, $err) = @_;
       eval {
         die $err if $err;
         $rate_limiter->finished_running;
