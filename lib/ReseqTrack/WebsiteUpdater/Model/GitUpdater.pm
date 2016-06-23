@@ -8,8 +8,6 @@ has 'remote' => (is => 'rw', isa => 'Maybe[Str]');
 has 'directory' => (is => 'rw', isa => 'Str', required => 1);
 has 'rsync_dests' => (is => 'rw', isa => 'ArrayRef[Str]', default => sub {return []});
 
-has '_start_branch' => (is => 'rw', isa => 'Str');
-
 # This sub is blocking, so only ever call it from a forked process
 # It does not catch errors
 sub run {
@@ -27,7 +25,6 @@ sub run {
   if (!$start_branch || $start_branch eq 'HEAD') {
     die 'HEAD is currently not on any branch. If you are in middle of a rebase or merge, please fix or abort it before continuing.'
   }
-  $self->_start_branch($start_branch);
 
   EnsEMBL::Git::fetch();
   EnsEMBL::Git::checkout_tracking($branch, $remote) or return ("could not checkout $branch on $remote $dir");
@@ -40,13 +37,6 @@ sub run {
     }
   }
 
-}
-
-sub cleanup {
-  my ($self) = @_;
-  return if !$self->_start_branch;
-  return if $self->_start_branch eq $self->branch;
-  EnsEMBL::Git::checkout($self->_start_branch);
 }
 
 __PACKAGE__->meta->make_immutable;
