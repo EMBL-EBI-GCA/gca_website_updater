@@ -21,3 +21,16 @@ The process is basically this:
 Steps 2-6 get executed in a forked process because they are blocking.
 
 Errors get emailed to users, set in the config file
+
+Install
+=======
+
+    ./etc/init.d/website_updater install
+ 
+This installs the following to the ./local directory:
+ 
+1. cpan modules
+2. Ensembl git tools
+3. git (because it's not installed on our VMs by default)
+
+Run the installation command from a login node with the same linux distribution as our VM, i.e. from a rh-6 login machine
