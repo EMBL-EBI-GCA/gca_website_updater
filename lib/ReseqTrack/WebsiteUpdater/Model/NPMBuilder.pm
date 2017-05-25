@@ -1,4 +1,4 @@
-package ReseqTrack::WebsiteUpdater::Model::Jekyll;
+package ReseqTrack::WebsiteUpdater::Model::NPMBuilder;
 use namespace::autoclean;
 use IPC::Cmd qw();
 use Moose;
@@ -14,7 +14,7 @@ sub run {
   chdir $dir or die $@;
 
   my ($success, $error_message, $full_buf, $stdout_buf, $stderr_buf) =
-    IPC::Cmd::run(command => 'bundle exec jekyll build');
+    IPC::Cmd::run(command => 'npm install');
   die join("\n", $error_message, @$stderr_buf) if !$success;
 
 }

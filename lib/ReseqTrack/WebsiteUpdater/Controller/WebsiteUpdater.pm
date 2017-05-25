@@ -5,7 +5,7 @@ use ReseqTrack::WebsiteUpdater::Model::PubSubHubBub;
 use ReseqTrack::WebsiteUpdater::Model::ElasticSitemapIndexer;
 use ReseqTrack::WebsiteUpdater::Model::GitUpdater;
 use ReseqTrack::WebsiteUpdater::Model::Rsyncer;
-use ReseqTrack::WebsiteUpdater::Model::Jekyll;
+use ReseqTrack::WebsiteUpdater::Model::NPMBuilder;
 use Mojo::IOLoop::ForkCall;
 
 =pod
@@ -14,7 +14,7 @@ This controller basically does this:
   1. Queries the rate limiter to find out if the project is already updating
     1.b. Queues a new job and exits if a job is already queued
   2. Uses the GitUpdater module to pull updates from git
-  3. Uses the Jekyll module to build the static content from the git repo
+  3. Uses the NPMBuilder module to build the static content from the git repo
   4. Uses the Rsyncer module to copy the jekyll _site directory to the webserver directories
   5. Uses the ElasticSitemapIndexer to put the static content into elasticsearch. This enables site search.
   6. Uses the PubSubHubBub module to announce updates to the rss feeds. This triggers automatic tweets.
@@ -76,7 +76,7 @@ sub _run_update_process {
   $self->fork_call( 
     sub { eval {
       $git_updater->run;
-      ReseqTrack::WebsiteUpdater::Model::Jekyll->new(
+      ReseqTrack::WebsiteUpdater::Model::NPMBuilder->new(
             directory => $project_config->{git_directory},
           )->run;
       

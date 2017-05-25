@@ -12,7 +12,7 @@ The process is basically this:
 1. Queries the rate limiter to find out if the project is already updating
   * Queues a new job and exits if a job is already queued
 2. Uses the GitUpdater module to pull updates from git
-3. Uses the Jekyll module to build the static content from the git repo
+3. Uses the NPMBuilder module to build the static content from the git repo
 4. Uses the Rsyncer module to copy the jekyll _site directory to the webserver directories
 5. Uses the ElasticSitemapIndexer to put the static content into elasticsearch. This enables site search.
 6. Uses the PubSubHubBub module to announce updates to the rss feeds. This triggers automatic tweets.
