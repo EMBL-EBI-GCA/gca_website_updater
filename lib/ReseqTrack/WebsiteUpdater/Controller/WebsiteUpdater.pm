@@ -49,7 +49,7 @@ sub update_project {
     my $rate_limiter = $self->rate_limiter($project);
     die "did not get rate limiter for $project" if !$rate_limiter;
 
-    $stash->{rate_limiter} => $rate_limiter;
+    $stash->{rate_limiter} = $rate_limiter;
 
     $rate_limiter->queue($stash);
     $stash = $rate_limiter->take_stash();
