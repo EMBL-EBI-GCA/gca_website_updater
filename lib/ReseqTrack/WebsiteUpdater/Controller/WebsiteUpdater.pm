@@ -93,7 +93,7 @@ sub _run_update_process {
 
       if (my $es_sitemap_index = $project_config->{'es_sitemap_index'}) {
         ReseqTrack::WebsiteUpdater::Model::ElasticSitemapIndexer->new(
-          index => $es_sitemap_index{index} || $stash->{project},
+          index => $es_sitemap_index->{index} || $stash->{project},
           hosts => $es_sitemap_index->{'hosts'},
           search_index_file => join('/', $project_config->{'git_directory'}, '_site', $es_sitemap_index->{'search_index_file'}),
         )->run();
