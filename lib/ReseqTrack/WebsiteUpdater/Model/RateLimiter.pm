@@ -7,7 +7,7 @@ has '_stashes' => (is => 'ro', isa => 'ArrayRef[HashRef]', default => sub{return
 
 sub queue {
   my ($self, $stash) = @_;
-  push(@{$self->stashes}, $stash);
+  push(@{$self->_stashes}, $stash);
 }
 
 sub take_stash {
