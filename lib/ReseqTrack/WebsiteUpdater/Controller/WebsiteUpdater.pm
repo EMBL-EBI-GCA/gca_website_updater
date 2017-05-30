@@ -34,7 +34,7 @@ sub update_project {
     if (ref($payload) != 'HASH' || !defined $payload->{ref} || ref($payload->{ref})) {
       return $self->render(text => 'no "ref" in the payload', status => 400);
     }
-    my ($git_branch) = $payload->{ref} =~ m{^ref/heads/(.+)};
+    my ($git_branch) = $payload->{ref} =~ m{^refs/heads/(.+)};
     if (!$git_branch) {
       return $self->render(text => 'did not find branch in the payload', status => 400);
     }
