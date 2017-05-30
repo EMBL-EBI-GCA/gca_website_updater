@@ -3,7 +3,7 @@ use namespace::autoclean;
 use Moose;
 
 has '_is_running' => (is => 'rw', isa => 'Bool', default => 0);
-has '_stashes' => (is => 'ro' isa => 'ArrayRef[HashRef]', default => []);
+has '_stashes' => (is => 'ro', isa => 'ArrayRef[HashRef]', default => []);
 
 sub queue {
   my ($self, $stash) = @_;
