@@ -2,23 +2,26 @@ package ReseqTrack::WebsiteUpdater::Model::RateLimiter;
 use namespace::autoclean;
 use Moose;
 
-has 'is_running' => (is => 'rw', isa => 'Bool', default => 0);
-has 'is_queuing' => (is => 'rw', isa => 'Bool', default => 0);
-
-sub run {
-  my ($self) = @_;
-  $self->is_running(1);
-  $self->is_queuing(0);
-}
+has '_is_running' => (is => 'rw', isa => 'Bool', default => 0);
+has '_stashes' => (is => 'ro' isa => 'ArrayRef[HashRef]', default => []);
 
 sub queue {
+  my ($self, $stash) = @_;
+  push(@{$self->stashes}, $stash);
+}
+
+sub take_stash {
   my ($self) = @_;
-  $self->is_queuing(1);
+  return undef if $self->_is_running;
+  my $stash = shift(@{$self->_stashes});
+  return undef if !$stash;
+  $self->_is_running(1);
+  return $stash;
 }
 
 sub finished_running {
   my ($self) = @_;
-  $self->is_running(0);
+  $self->_is_running(0);
 }
 
 __PACKAGE__->meta->make_immutable;

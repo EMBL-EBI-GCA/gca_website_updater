@@ -30,48 +30,54 @@ Errors get emailed to users, set in the config file
 sub update_project {
   my ($self) = @_;
   eval {
-    my $project = $self->stash('project');
-    my $project_config = $self->config('projects')->{$project};
+    my $payload = $self->req->json;
+    if (ref($payload) != 'HASH' || !defined $payload->{ref} || ref($payload->{ref})) {
+      return $self->render(text => 'no "ref" in the payload', status => 400);
+    }
+    my ($git_branch) = $payload->{ref} =~ m{^ref/heads/(.+)};
+    if (!$git_branch) {
+      return $self->render(text => 'did not find branch in the payload', status => 400);
+    }
+
+    my $stash = $self->stash;
+    my $project = $stash{project};
+    my $project_config = $self->config('projects')->{$project}{$git_branch};
     return $self->reply->not_found if !$project_config;
-    $self->stash(project_config => $project_config);
+    $stash{project_config} = $project_config;
+    $stash{git_branch} = $git_branch;
 
     my $rate_limiter = $self->rate_limiter($project);
     die "did not get rate limiter for $project" if !$rate_limiter;
 
-    if ($rate_limiter->is_running){
+    $stash{rate_limiter} => $rate_limiter;
+
+    $rate_limiter->queue($stash);
+    $stash = $rate_limiter->take_stash();
+
+    if (!$stash){
       $self->render(text => 'OK: an update is already running, so this update will run immediately afterwards.');
-      $rate_limiter->queue;
       return;
     }
-    else {
-      $self->render(text => 'update will run now');
-    }
 
-    my $git_updater = ReseqTrack::WebsiteUpdater::Model::GitUpdater->new(
-      branch => $project_config->{branch},
-      remote => $project_config->{remote},
-      directory => $project_config->{git_directory},
-    );
-
-    $self->stash(git_updater => $git_updater);
-    $self->stash(rate_limiter => $rate_limiter);
-
-    $self->_run_update_process;
+    $self->_run_update_process($stash);
+    $self->render(text => 'update will run now');
 
   };
   if ($@) {
-    $self->_handle_error($@);
+    $self->handle_error($@, $self->stash);
     $self->render(text => 'server error', status => 500);
   }
 }
 
 sub _run_update_process {
-  my ($self) = @_;
-  my $rate_limiter = $self->stash('rate_limiter');
-  my $project_config = $self->stash('project_config');
-  my $git_updater = $self->stash('git_updater');
-
-  $rate_limiter->run;
+  my ($self, $stash) = @_;
+  my $rate_limiter = $stash{rate_limiter};
+  my $project_config = $stash{project_config};
+  my $git_updater = ReseqTrack::WebsiteUpdater::Model::GitUpdater->new(
+      branch => $stash->{git_branch},
+      remote => $project_config->{git_remote},
+      directory => $project_config->{git_directory},
+    );
 
   $self->fork_call( 
     sub { eval {
@@ -87,7 +93,7 @@ sub _run_update_process {
 
       if (my $es_sitemap_index = $project_config->{'es_sitemap_index'}) {
         ReseqTrack::WebsiteUpdater::Model::ElasticSitemapIndexer->new(
-          index => $self->stash('project'),
+          index => $es_sitemap_index{index} || $stash{project},
           hosts => $es_sitemap_index->{'hosts'},
           search_index_file => join('/', $project_config->{'git_directory'}, '_site', $es_sitemap_index->{'search_index_file'}),
         )->run();
@@ -105,29 +111,29 @@ sub _run_update_process {
       eval {
         die $err if $err;
         $rate_limiter->finished_running;
-        if ($rate_limiter->is_queuing) {
-          return $self->_run_update_process;
+        if (my $next_stash = $rate_limiter->take_stash) {
+          return $self->_run_update_process($next_stash);
         }
       };
       if ($@) {
-        $self->handle_error($@);
+        $self->handle_error($@, $stash);
       }
     }
   );
 }
 
 sub handle_error {
-  my ($self, $error) = @_;
+  my ($self, $error, $stash) = @_;
   $self->app->log->error($error);
-  my $rate_limiter = $self->stash('rate_limiter');
+  my $rate_limiter = $stash{rate_limiter};
   if ($rate_limiter) {
     $rate_limiter->finished_running;
   }
-  my $project_config = $self->stash('project_config');
+  my $project_config = $stash{project_config};
   if (my $email_to = $project_config->{email_to}) {
     $self->mail(
       to => $email_to,
-      subject => 'Error in the website updater for project '.$self->stash('project'),
+      subject => 'Error in the website updater for project '.$stash{project},
       data => $error,
     );
   }
