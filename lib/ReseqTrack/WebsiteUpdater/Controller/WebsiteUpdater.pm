@@ -40,16 +40,16 @@ sub update_project {
     }
 
     my $stash = $self->stash;
-    my $project = $stash{project};
+    my $project = $stash->{project};
     my $project_config = $self->config('projects')->{$project}{$git_branch};
     return $self->reply->not_found if !$project_config;
-    $stash{project_config} = $project_config;
-    $stash{git_branch} = $git_branch;
+    $stash->{project_config} = $project_config;
+    $stash->{git_branch} = $git_branch;
 
     my $rate_limiter = $self->rate_limiter($project);
     die "did not get rate limiter for $project" if !$rate_limiter;
 
-    $stash{rate_limiter} => $rate_limiter;
+    $stash->{rate_limiter} => $rate_limiter;
 
     $rate_limiter->queue($stash);
     $stash = $rate_limiter->take_stash();
@@ -71,8 +71,8 @@ sub update_project {
 
 sub _run_update_process {
   my ($self, $stash) = @_;
-  my $rate_limiter = $stash{rate_limiter};
-  my $project_config = $stash{project_config};
+  my $rate_limiter = $stash->{rate_limiter};
+  my $project_config = $stash->{project_config};
   my $git_updater = ReseqTrack::WebsiteUpdater::Model::GitUpdater->new(
       branch => $stash->{git_branch},
       remote => $project_config->{git_remote},
@@ -93,7 +93,7 @@ sub _run_update_process {
 
       if (my $es_sitemap_index = $project_config->{'es_sitemap_index'}) {
         ReseqTrack::WebsiteUpdater::Model::ElasticSitemapIndexer->new(
-          index => $es_sitemap_index{index} || $stash{project},
+          index => $es_sitemap_index{index} || $stash->{project},
           hosts => $es_sitemap_index->{'hosts'},
           search_index_file => join('/', $project_config->{'git_directory'}, '_site', $es_sitemap_index->{'search_index_file'}),
         )->run();
@@ -125,15 +125,15 @@ sub _run_update_process {
 sub handle_error {
   my ($self, $error, $stash) = @_;
   $self->app->log->error($error);
-  my $rate_limiter = $stash{rate_limiter};
+  my $rate_limiter = $stash->{rate_limiter};
   if ($rate_limiter) {
     $rate_limiter->finished_running;
   }
-  my $project_config = $stash{project_config};
+  my $project_config = $stash->{project_config};
   if (my $email_to = $project_config->{email_to}) {
     $self->mail(
       to => $email_to,
-      subject => 'Error in the website updater for project '.$stash{project},
+      subject => 'Error in the website updater for project '.$stash->{project},
       data => $error,
     );
   }
