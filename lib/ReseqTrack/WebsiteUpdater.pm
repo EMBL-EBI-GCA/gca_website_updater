@@ -11,7 +11,7 @@ sub startup {
     $self->plugin('ForkCall');
     $self->plugin(mail => {
       from => $self->config('email_from'),
-      type => 'text/html',
+      type => 'text/plain',
     });
 
     # This plugin ensures that the updates are only allowed to run every 120 seconds
