@@ -137,8 +137,10 @@ sub handle_error {
       data => $error,
     );
   }
-  if ($rate_limiter && $rate_limiter->is_queuing) {
-    $self->_run_update_process;
+  if ($rate_limiter) {
+    if (my $next_stash = $rate_limiter->take_stash) {
+      return $self->_run_update_process($next_stash);
+    }
   }
 }
 
