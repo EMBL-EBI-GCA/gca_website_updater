@@ -3,6 +3,8 @@ gca_website_builder
 
 Web server for pulling from github and updating static content
 
+**Ian's advice:** I recommend you never do any more development on the static website udpater. Use something like [Bamboo](https://confluence.atlassian.com/bamboo) instead. Better to use a tool designed exactly for this purpose instead of this custom code. And our friends in the SPOT team already use bamboo.
+
 The only endpoint is /update_project/{project_name}
 
 e.g. curl -XPOST http://localhost:8001/update_project/hipsci
